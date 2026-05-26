@@ -138,7 +138,7 @@ public class AddEditOrderController {
 
         try {
             int orderNumber = Integer.parseInt(orderNumberField.getText());
-            String orderArticle = orderArticleField.getText().trim();  // Получаем артикул заказа
+            String orderArticle = orderArticleField.getText().trim();
             String productData = productComboBox.getValue();
             String productArticle = productData != null ? productData.split(" - ")[0] : "";
             int quantity = Integer.parseInt(quantityField.getText());
@@ -151,7 +151,7 @@ public class AddEditOrderController {
 
             Order order = new Order(
                     orderNumber,
-                    orderArticle,  // Используем введенный артикул заказа
+                    orderArticle,
                     status,
                     orderDate,
                     deliveryDate,
