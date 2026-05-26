@@ -48,24 +48,30 @@ public class AddEditOrderController {
     }
 
     private void loadComboBoxes() {
+        loadClients();
+        loadPickUpPoints();
+        loadProducts();
+    }
+
+    private void loadClients() {
         List<User> clients = orderRepository.getAllClients();
         clientComboBox.getItems().clear();
-        for (User client : clients) {
-            clientComboBox.getItems().add(client.getFullName());
-        }
+        clients.forEach(client -> clientComboBox.getItems().add(client.getFullName()));
+    }
 
+    private void loadPickUpPoints() {
         List<PickUpPoint> points = orderRepository.getAllPickUpPoints();
         pickUpPointComboBox.getItems().clear();
-        for (PickUpPoint point : points) {
+        points.forEach(point -> {
             String fullAddress = point.getIndex() + ", " + point.getCity() + ", " + point.getStreet() + ", " + point.getBuildingNumber();
             pickUpPointComboBox.getItems().add(fullAddress);
-        }
+        });
+    }
 
+    private void loadProducts() {
         List<Product> products = orderRepository.getAllProductsForOrder();
         productComboBox.getItems().clear();
-        for (Product product : products) {
-            productComboBox.getItems().add(product.getArticle() + " - " + product.getProductName());
-        }
+        products.forEach(product -> productComboBox.getItems().add(product.getArticle() + " - " + product.getProductName()));
     }
 
     private void setupStatusComboBox() {
@@ -75,22 +81,37 @@ public class AddEditOrderController {
     private void checkEditMode() {
         currentOrder = service.getOrderToEdit();
         if (currentOrder != null) {
-            isEditMode = true;
-            btnSaveOrder.setText("Обновить");
+            enableEditMode();
             loadOrderData(currentOrder);
-
-            orderNumberField.setDisable(true);
         } else {
-            isEditMode = false;
-            btnSaveOrder.setText("Сохранить");
-            orderNumberField.setDisable(false);
-            orderNumberField.setText("");
-            orderArticleField.setText("");
-            quantityField.setText("1");
-            codeField.setText("");
-            orderDatePicker.setValue(LocalDate.now());
-            deliveryDatePicker.setValue(null);
+            enableAddMode();
         }
+    }
+
+    private void enableEditMode() {
+        isEditMode = true;
+        btnSaveOrder.setText("Обновить");
+        orderNumberField.setDisable(true);
+    }
+
+    private void enableAddMode() {
+        isEditMode = false;
+        btnSaveOrder.setText("Сохранить");
+        orderNumberField.setDisable(false);
+        clearFields();
+    }
+
+    private void clearFields() {
+        orderNumberField.setText("");
+        orderArticleField.setText("");
+        quantityField.setText("1");
+        codeField.setText("");
+        orderDatePicker.setValue(LocalDate.now());
+        deliveryDatePicker.setValue(null);
+        clientComboBox.setValue(null);
+        pickUpPointComboBox.setValue(null);
+        productComboBox.setValue(null);
+        statusComboBox.setValue(null);
     }
 
     private void loadOrderData(Order order) {
@@ -102,26 +123,25 @@ public class AddEditOrderController {
         pickUpPointComboBox.setValue(order.getPickUpAddress());
         orderDatePicker.setValue(parseDate(order.getOrderDate()));
         deliveryDatePicker.setValue(parseDate(order.getDeliveryDate()));
-
-        int codeToReceive = order.getCodeToReceive();
-        codeField.setText(String.valueOf(codeToReceive));
-
+        codeField.setText(String.valueOf(order.getCodeToReceive()));
         statusComboBox.setValue(order.getOrderStatus());
 
+        selectProductInComboBox(order.getOrderArticle());
+        loadProductQuantity(order);
+    }
 
-        String article = order.getOrderArticle();
+    private void selectProductInComboBox(String article) {
         if (article != null && !article.isEmpty()) {
-            for (String item : productComboBox.getItems()) {
-                if (item.startsWith(article)) {
-                    productComboBox.setValue(item);
-                    break;
-                }
-            }
+            productComboBox.getItems().stream()
+                    .filter(item -> item.startsWith(article))
+                    .findFirst()
+                    .ifPresent(productComboBox::setValue);
         }
+    }
 
-
+    private void loadProductQuantity(Order order) {
         int quantity = orderRepository.getProductQuantity(order.getOrderNumber(), order.getOrderArticle());
-        quantityField.setText(quantity > 0 ? String.valueOf(quantity) : "1");
+        quantityField.setText(String.valueOf(quantity > 0 ? quantity : 1));
     }
 
     private LocalDate parseDate(String date) {
@@ -137,36 +157,12 @@ public class AddEditOrderController {
         if (!validateFields()) return;
 
         try {
-            int orderNumber = Integer.parseInt(orderNumberField.getText());
-            String orderArticle = orderArticleField.getText().trim();
-            String productData = productComboBox.getValue();
-            String productArticle = productData != null ? productData.split(" - ")[0] : "";
-            int quantity = Integer.parseInt(quantityField.getText());
-            String pickUpAddress = pickUpPointComboBox.getValue();
-            String clientName = clientComboBox.getValue();
-            int code = Integer.parseInt(codeField.getText());
-            String status = statusComboBox.getValue();
-            String orderDate = orderDatePicker.getValue().toString();
-            String deliveryDate = deliveryDatePicker.getValue() != null ? deliveryDatePicker.getValue().toString() : null;
-
-            Order order = new Order(
-                    orderNumber,
-                    orderArticle,
-                    status,
-                    orderDate,
-                    deliveryDate,
-                    pickUpAddress,
-                    clientName,
-                    code
-            );
+            Order order = buildOrderFromForm();
 
             if (isEditMode) {
-                String oldProductArticle = currentOrder != null ? currentOrder.getOrderArticle() : productArticle;
-                orderRepository.updateOrder(order, productArticle, quantity, oldProductArticle);
-                service.showAlert("Успех", "Заказ успешно обновлен!", Alert.AlertType.INFORMATION);
+                updateExistingOrder(order);
             } else {
-                orderRepository.addOrder(order, productArticle, quantity);
-                service.showAlert("Успех", "Заказ успешно добавлен!", Alert.AlertType.INFORMATION);
+                createNewOrder(order);
             }
 
             service.setOrderToEdit(null);
@@ -177,32 +173,71 @@ public class AddEditOrderController {
         }
     }
 
+    private Order buildOrderFromForm() {
+        int orderNumber = Integer.parseInt(orderNumberField.getText());
+        String orderArticle = orderArticleField.getText().trim();
+        String productData = productComboBox.getValue();
+        String productArticle = productData != null ? productData.split(" - ")[0] : "";
+        int quantity = Integer.parseInt(quantityField.getText());
+        String pickUpAddress = pickUpPointComboBox.getValue();
+        String clientName = clientComboBox.getValue();
+        int code = Integer.parseInt(codeField.getText());
+        String status = statusComboBox.getValue();
+        String orderDate = orderDatePicker.getValue().toString();
+        String deliveryDate = deliveryDatePicker.getValue() != null ? deliveryDatePicker.getValue().toString() : null;
+
+        return new Order(orderNumber, orderArticle, status, orderDate, deliveryDate, pickUpAddress, clientName, code);
+    }
+
+    private void updateExistingOrder(Order order) {
+        String productData = productComboBox.getValue();
+        String productArticle = productData != null ? productData.split(" - ")[0] : "";
+        int quantity = Integer.parseInt(quantityField.getText());
+        String oldProductArticle = currentOrder != null ? currentOrder.getOrderArticle() : productArticle;
+
+        orderRepository.updateOrder(order, productArticle, quantity, oldProductArticle);
+        service.showAlert("Успех", "Заказ успешно обновлен!", Alert.AlertType.INFORMATION);
+    }
+
+    private void createNewOrder(Order order) {
+        String productData = productComboBox.getValue();
+        String productArticle = productData != null ? productData.split(" - ")[0] : "";
+        int quantity = Integer.parseInt(quantityField.getText());
+
+        orderRepository.addOrder(order, productArticle, quantity);
+        service.showAlert("Успех", "Заказ успешно добавлен!", Alert.AlertType.INFORMATION);
+    }
+
     private boolean validateFields() {
         if (orderArticleField.getText().trim().isEmpty()) {
-            service.showAlert("Ошибка", "Введите артикул заказа", Alert.AlertType.WARNING);
+            showValidationError("Введите артикул заказа");
             return false;
         }
         if (clientComboBox.getValue() == null) {
-            service.showAlert("Ошибка", "Выберите клиента", Alert.AlertType.WARNING);
+            showValidationError("Выберите клиента");
             return false;
         }
         if (pickUpPointComboBox.getValue() == null) {
-            service.showAlert("Ошибка", "Выберите пункт выдачи", Alert.AlertType.WARNING);
+            showValidationError("Выберите пункт выдачи");
             return false;
         }
         if (productComboBox.getValue() == null) {
-            service.showAlert("Ошибка", "Выберите товар", Alert.AlertType.WARNING);
+            showValidationError("Выберите товар");
             return false;
         }
         if (quantityField.getText().isEmpty() || quantityField.getText().equals("0")) {
-            service.showAlert("Ошибка", "Введите количество (больше 0)", Alert.AlertType.WARNING);
+            showValidationError("Введите количество (больше 0)");
             return false;
         }
         if (codeField.getText().isEmpty()) {
-            service.showAlert("Ошибка", "Введите код получения", Alert.AlertType.WARNING);
+            showValidationError("Введите код получения");
             return false;
         }
         return true;
+    }
+
+    private void showValidationError(String message) {
+        service.showAlert("Ошибка", message, Alert.AlertType.WARNING);
     }
 
     private void backToOrders() {
