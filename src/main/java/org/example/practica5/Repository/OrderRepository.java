@@ -25,25 +25,28 @@ public class OrderRepository {
     public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();
         String query = """
-            SELECT
-                o.order_number,
-                o.order_article,
-                o.order_status,
-                o.order_date,
-                o.delivery_date,
-                o.code_to_receive,
-                u.full_name,
-                CONCAT(pp."index", ', ', pp.city, ', ', pp.street, ', ',
-                       COALESCE(pp.building_number::text, '')) AS full_address
-            FROM orders AS o
-            LEFT JOIN pick_up_points AS pp ON o.pick_up_address = pp."index"
-            LEFT JOIN users AS u ON o.client = u.id
-            ORDER BY o.order_number
-        """;
+        SELECT
+            o.order_number,
+            o.order_article,
+            o.order_status,
+            o.order_date,
+            o.delivery_date,
+            o.code_to_receive,
+            u.full_name,
+            CONCAT(pp."index", ', ', pp.city, ', ', pp.street, ', ',
+                   COALESCE(pp.building_number::text, '')) AS full_address
+        FROM orders AS o
+        LEFT JOIN pick_up_points AS pp ON o.pick_up_address = pp."index"
+        LEFT JOIN users AS u ON o.client = u.id
+        ORDER BY o.order_number
+    """;
 
         try (PreparedStatement stmt = dbHandler.getPreparedStatement(query)) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
+                int codeToReceive = rs.getInt("code_to_receive");
+
+
                 Order order = new Order(
                         rs.getInt("order_number"),
                         rs.getString("order_article"),
@@ -52,7 +55,7 @@ public class OrderRepository {
                         rs.getString("delivery_date"),
                         rs.getString("full_address"),
                         rs.getString("full_name"),
-                        rs.getInt("code_to_receive")
+                        codeToReceive
                 );
                 orders.add(order);
             }
@@ -219,26 +222,63 @@ public class OrderRepository {
         return 1;
     }
 
-    public void updateOrder(Order order, String productArticle, int quantity) {
-        String updateOrder = """
-            UPDATE orders SET order_article=?, order_date=?, delivery_date=?,
+
+
+    public void updateOrder(Order order, String productArticle, int quantity, String oldProductArticle) {
+        try {
+            // Обновляем основную информацию о заказе
+            String updateOrder = """
+            UPDATE orders SET order_date=?, delivery_date=?,
             pick_up_address=?, client=?, code_to_receive=?, order_status=?
             WHERE order_number=?
         """;
-        try (PreparedStatement stmt = dbHandler.getPreparedStatement(updateOrder)) {
-            stmt.setString(1, order.getOrderArticle());
-            stmt.setDate(2, parseDate(order.getOrderDate()));
-            stmt.setDate(3, parseDate(order.getDeliveryDate()));
-            stmt.setInt(4, getPickUpPointIndex(order.getPickUpAddress()));
-            stmt.setInt(5, getClientId(order.getClientName()));
-            stmt.setInt(6, order.getCodeToReceive());
-            stmt.setString(7, order.getOrderStatus());
-            stmt.setInt(8, order.getOrderNumber());
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = dbHandler.getPreparedStatement(updateOrder)) {
+                stmt.setDate(1, parseDate(order.getOrderDate()));
+                stmt.setDate(2, parseDate(order.getDeliveryDate()));
+                stmt.setInt(3, getPickUpPointIndex(order.getPickUpAddress()));
+                stmt.setInt(4, getClientId(order.getClientName()));
+                stmt.setInt(5, order.getCodeToReceive());
+                stmt.setString(6, order.getOrderStatus());
+                stmt.setInt(7, order.getOrderNumber());
+                stmt.executeUpdate();
+            }
 
-            deleteProductsFromOrder(order.getOrderNumber());
-            addProductToOrder(order.getOrderNumber(), productArticle, quantity);
+            // Обновляем состав заказа
+            // Проверяем, существует ли уже товар в заказе
+            String checkQuery = "SELECT COUNT(*) FROM products_orders WHERE \"order\" = ? AND product = ?";
+            try (PreparedStatement checkStmt = dbHandler.getPreparedStatement(checkQuery)) {
+                checkStmt.setInt(1, order.getOrderNumber());
+                checkStmt.setString(2, productArticle);
+                ResultSet rs = checkStmt.executeQuery();
+                rs.next();
+                int count = rs.getInt(1);
+
+                if (count > 0) {
+                    // Обновляем количество существующего товара
+                    String updateProduct = "UPDATE products_orders SET product_quantity = ? WHERE \"order\" = ? AND product = ?";
+                    try (PreparedStatement updateStmt = dbHandler.getPreparedStatement(updateProduct)) {
+                        updateStmt.setInt(1, quantity);
+                        updateStmt.setInt(2, order.getOrderNumber());
+                        updateStmt.setString(3, productArticle);
+                        updateStmt.executeUpdate();
+                    }
+                } else {
+                    // Удаляем старый товар и добавляем новый
+                    deleteProductsFromOrder(order.getOrderNumber());
+                    addProductToOrder(order.getOrderNumber(), productArticle, quantity);
+                }
+            }
+
+            // Обновляем поле order_article в таблице orders
+            String updateArticle = "UPDATE orders SET order_article = ? WHERE order_number = ?";
+            try (PreparedStatement stmt = dbHandler.getPreparedStatement(updateArticle)) {
+                stmt.setString(1, productArticle);
+                stmt.setInt(2, order.getOrderNumber());
+                stmt.executeUpdate();
+            }
+
         } catch (SQLException e) {
+            System.err.println("SQL Error при обновлении заказа: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -262,5 +302,23 @@ public class OrderRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public int getProductQuantity(int orderNumber, String productArticle) {
+        String query = "SELECT product_quantity FROM products_orders WHERE \"order\" = ? AND product = ?";
+        try (PreparedStatement stmt = dbHandler.getPreparedStatement(query)) {
+            stmt.setInt(1, orderNumber);
+            stmt.setString(2, productArticle);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int quantity = rs.getInt("product_quantity");
+                System.out.println("getProductQuantity: заказ=" + orderNumber + ", товар=" + productArticle + ", количество=" + quantity);
+                return quantity;
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении количества товара в заказе: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

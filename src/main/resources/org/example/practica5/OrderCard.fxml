@@ -59,8 +59,8 @@
 
 
         <HBox spacing="10.0" alignment="CENTER_LEFT">
-            <Label text="Код получения:" style="-fx-font-weight: bold;  -fx-min-width: 80;"/>
-            <Label fx:id="lblCodeToReceive" />
+            <Label fx:id="lblCodeTitle" text="Код получения:" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-min-width: 80;"/>
+            <Label fx:id="lblCodeToReceive" style="-fx-text-fill: #000000; -fx-font-weight: bold;"/>
         </HBox>
 
     </VBox>

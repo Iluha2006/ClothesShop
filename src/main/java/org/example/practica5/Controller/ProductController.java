@@ -68,7 +68,6 @@ public class ProductController {
             setupDynamicFilters();
             setupListViewDoubleClick();
 
-
             if (service.hasAccess(RoleUser.ADMIN) || service.hasAccess(RoleUser.MANAGER)) {
                 btnOrders.setVisible(true);
                 btnOrders.setManaged(true);
@@ -115,7 +114,6 @@ public class ProductController {
             }
         });
     }
-
 
     private void setupDynamicFilters() {
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -211,8 +209,6 @@ public class ProductController {
         sortHandler.setupSorting(sortBy);
     }
 
-
-
     public void setupPanel() {
         System.out.println("Setup panel called. User role: " + service.getCurrentUser().getRole());
 
@@ -279,8 +275,6 @@ public class ProductController {
         }
     }
 
-
-
     @FXML
     private void handleSearch() {
         try {
@@ -289,7 +283,6 @@ public class ProductController {
             e.printStackTrace();
         }
     }
-
 
     private void loadUserInfo() {
         User currentUser = service.getCurrentUser();
@@ -307,7 +300,6 @@ public class ProductController {
             userRoleLabel.setText("Роль: Гость");
         }
     }
-
     @FXML
     private void handleLogout() {
         service.changeScene("/org/example/practica5/SignIn.fxml", "Авторизация");

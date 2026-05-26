@@ -20,7 +20,6 @@ public class Service {
     private Product productToEdit;
     private Stage primaryStage;
 
-
     private static Order orderToEdit;
 
     public static Service getInstance() {

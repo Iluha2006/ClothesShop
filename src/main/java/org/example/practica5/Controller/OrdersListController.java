@@ -44,7 +44,7 @@ public class OrdersListController {
         loadUser();
         setupAccess();
         loadOrders();
-        setupListViewDoubleClick();
+
 
 
         btnAddOrder.setOnAction(e -> orderRoutes.addOrder());

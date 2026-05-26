@@ -13,6 +13,7 @@ public class FilterProduct {
     public FilterProduct(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
+
     public List<Product> filterByCategory(List<Product> products, String category) {
         if (category == null || category.equals("Все категории") || category.isEmpty()) {
             return products;

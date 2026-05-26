@@ -26,12 +26,11 @@ public class ProductCardController {
 
     public void setProductCardData(Product product) {
         if (product == null) return;
-
         setProductInfo(product);
         setDiscountAndPrice(product);
         loadProductImage(product);
         applyCardBackgroundStyle(product);
-        applyTextColorBasedOnBackground(product); // Добавляем метод для цвета текста
+        applyTextColorBasedOnBackground(product);
     }
 
     private void setProductInfo(Product product) {

@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="550.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.practica5.Controller.AddEditOrderController">
+<AnchorPane prefHeight="550.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.practica5.Controller.AddEditOrderController">
 
     <ScrollPane layoutY="110.4" prefHeight="390.0" prefWidth="600.0" AnchorPane.bottomAnchor="50" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="110.0">
         <GridPane fx:id="formGrid" hgap="15.0" style="-fx-padding: 20;" vgap="10.0">
@@ -23,44 +23,50 @@
                 <ColumnConstraints hgrow="ALWAYS" prefWidth="300" />
             </columnConstraints>
 
-            <Label style="-fx-font-weight: bold;" text="Номер заказа:" GridPane.rowIndex="1" />
-            <TextField fx:id="orderNumberField"  GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <rowConstraints>
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+            </rowConstraints>
 
-            <Label style="-fx-font-weight: bold;" text="Клиент:" GridPane.rowIndex="2" />
-            <ComboBox fx:id="clientComboBox" promptText="Выберите клиента" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label style="-fx-font-weight: bold;" text="Номер заказа:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+            <TextField fx:id="orderNumberField" GridPane.rowIndex="0" GridPane.columnIndex="1" />
 
-            <Label style="-fx-font-weight: bold;" text="Пункт выдачи:" GridPane.rowIndex="3" />
-            <ComboBox fx:id="pickUpPointComboBox" promptText="Выберите пункт выдачи" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Label text="Артикул заказа:" style="-fx-font-weight: bold;" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+            <TextField fx:id="orderArticleField" promptText="Артикул заказа" GridPane.rowIndex="1" GridPane.columnIndex="1" />
 
-            <Label style="-fx-font-weight: bold;" text="Товар:" GridPane.rowIndex="4" />
-            <ComboBox fx:id="productComboBox" promptText="Выберите товар" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <Label style="-fx-font-weight: bold;" text="Клиент:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+            <ComboBox fx:id="clientComboBox" promptText="Выберите клиента" GridPane.rowIndex="2" GridPane.columnIndex="1" />
 
-            <Label style="-fx-font-weight: bold;" text="Количество:" GridPane.rowIndex="5" />
-            <TextField fx:id="quantityField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            <Label style="-fx-font-weight: bold;" text="Пункт выдачи:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+            <ComboBox fx:id="pickUpPointComboBox" promptText="Выберите пункт выдачи" GridPane.rowIndex="3" GridPane.columnIndex="1" />
 
-            <Label style="-fx-font-weight: bold;" text="Дата заказа:" GridPane.rowIndex="6" />
-            <DatePicker fx:id="orderDatePicker" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            <Label style="-fx-font-weight: bold;" text="Товар:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+            <ComboBox fx:id="productComboBox" promptText="Выберите товар" GridPane.rowIndex="4" GridPane.columnIndex="1" />
 
-            <Label style="-fx-font-weight: bold;" text="Дата доставки:" GridPane.rowIndex="7" />
-            <DatePicker fx:id="deliveryDatePicker" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+            <Label style="-fx-font-weight: bold;" text="Количество:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
+            <TextField fx:id="quantityField" GridPane.rowIndex="5" GridPane.columnIndex="1" />
 
-            <Label style="-fx-font-weight: bold;" text="Код получения:" GridPane.rowIndex="8" />
-            <TextField fx:id="codeField" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+            <Label style="-fx-font-weight: bold;" text="Дата заказа:" GridPane.rowIndex="6" GridPane.columnIndex="0" />
+            <DatePicker fx:id="orderDatePicker" GridPane.rowIndex="6" GridPane.columnIndex="1" />
 
-            <Label style="-fx-font-weight: bold;" text="Статус заказа:" GridPane.rowIndex="9" />
-            <ComboBox fx:id="statusComboBox" promptText="Выберите статус" GridPane.columnIndex="1" GridPane.rowIndex="9" />
-         <rowConstraints>
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-         </rowConstraints>
+            <Label style="-fx-font-weight: bold;" text="Дата доставки:" GridPane.rowIndex="7" GridPane.columnIndex="0" />
+            <DatePicker fx:id="deliveryDatePicker" GridPane.rowIndex="7" GridPane.columnIndex="1" />
+
+            <Label style="-fx-font-weight: bold;" text="Код получения:" GridPane.rowIndex="8" GridPane.columnIndex="0" />
+            <TextField fx:id="codeField" GridPane.rowIndex="8" GridPane.columnIndex="1" />
+
+            <Label style="-fx-font-weight: bold;" text="Статус заказа:" GridPane.rowIndex="9" GridPane.columnIndex="0" />
+            <ComboBox fx:id="statusComboBox" promptText="Выберите статус" GridPane.rowIndex="9" GridPane.columnIndex="1" />
         </GridPane>
     </ScrollPane>
 
@@ -68,16 +74,12 @@
         <Button fx:id="btnSaveOrder" style="-fx-cursor: hand;" text="Сохранить" />
         <Button fx:id="btnBackOrders" text="Назад" />
     </HBox>
-   <HBox layoutY="-2.0" prefHeight="112.0" prefWidth="600.0" style="-fx-background-color: green;">
-      <children>
-         <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="54.0" prefWidth="342.0" text="Добавление/редактирование заказа" textAlignment="CENTER" style="-fx-ba">
+
+    <HBox layoutY="0.0" prefHeight="112.0" prefWidth="600.0" style="-fx-background-color: green;" alignment="CENTER">
+        <Label alignment="CENTER" contentDisplay="CENTER" text="Добавление/редактирование заказа" textFill="white">
             <font>
-               <Font size="16.0" />
+                <Font size="16.0" />
             </font>
-            <HBox.margin>
-               <Insets left="100.0" />
-            </HBox.margin>
-         </Label>
-      </children>
-   </HBox>
+        </Label>
+    </HBox>
 </AnchorPane>
